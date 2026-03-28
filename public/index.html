@@ -1,36 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Script Protector</title>
+<title>Script Protector</title>
+<style>
+body{background:#0d0d0d;color:#fff;font-family:Arial;text-align:center}textarea{width:80%;height:200px;background:#111;color:#fff;border:none;padding:10px}button{padding:10px 20px;background:#4CAF50;border:none;color:#fff;cursor:pointer}.link{margin-top:20px;color:#0ff}
+</style>
 </head>
-<body style="background:#111;color:white;font-family:sans-serif">
-
-<h2>Script Protector</h2>
-
-<textarea id="code" rows="15" cols="80" placeholder="Paste your Lua script here..."></textarea>
-<br><br>
-
-<button onclick="setCode()">Protect Script</button>
-
-<p id="status"></p>
-
+<body>
+<h1>🔒 Script Protector</h1>
+<textarea id="code"></textarea><br><br>
+<button onclick="c()">Protect</button>
+<div class="link" id="link"></div>
 <script>
-async function setCode() {
-    let code = document.getElementById("code").value
-
-    let res = await fetch("/set", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-admin": "dxfc_admin"
-        },
-        body: JSON.stringify({ code })
-    })
-
-    let text = await res.text()
-    document.getElementById("status").innerText = text == "ok" ? "Updated!" : "Failed"
-}
+async function c(){let code=document.getElementById("code").value,res=await fetch("/create",{method:"POST",headers:{"Content-Type":"application/json","x-admin":"dxfc_admin"},body:JSON.stringify({code})}),d=await res.json();document.getElementById("link").innerHTML="Your script URL:<br><b>"+location.origin+d.link+"</b>"}
 </script>
-
 </body>
 </html>
