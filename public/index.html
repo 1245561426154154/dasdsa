@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Script Protector</title>
+</head>
+<body style="background:#111;color:white;font-family:sans-serif">
+
+<h2>Script Protector</h2>
+
+<textarea id="code" rows="15" cols="80" placeholder="Paste your Lua script here..."></textarea>
+<br><br>
+
+<button onclick="setCode()">Protect Script</button>
+
+<p id="status"></p>
+
+<script>
+async function setCode() {
+    let code = document.getElementById("code").value
+
+    let res = await fetch("/set", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-admin": "dxfc_admin"
+        },
+        body: JSON.stringify({ code })
+    })
+
+    let text = await res.text()
+    document.getElementById("status").innerText = text == "ok" ? "Updated!" : "Failed"
+}
+</script>
+
+</body>
+</html>
