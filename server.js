@@ -1,51 +1,58 @@
 const express = require("express")
 const crypto = require("crypto")
+const path = require("path")
+
 const app = express()
 app.use(express.json())
+app.use(express.static("public"))
 
 const PORT = process.env.PORT || 3000
 
-// Shared secret (known only to client + server)
 const SHARED_SECRET = "dxfc_secret"
+const ADMIN = "dxfc_admin"
 
-// Initial real Lua code (can be updated anytime)
-let REAL_CODE = "print('REAL EXECUTED')"
+let REAL_CODE = "print('default')"
 
-// XOR helper
+// XOR
 function xor(data, key) {
     let out = ""
     for (let i = 0; i < data.length; i++) {
-        out += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length))
+        out += String.fromCharCode(
+            data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+        )
     }
     return out
 }
 
-// Optional endpoint to change REAL_CODE anytime
+// set code from website
 app.post("/set", (req, res) => {
-    const adminKey = req.headers["x-admin"]
-    if (adminKey !== "dxfc_admin") return res.send("no")
+    if (req.headers["x-admin"] !== ADMIN) return res.send("no")
+
     REAL_CODE = req.body.code || "print('empty')"
-    res.send("updated")
+    res.send("ok")
 })
 
-// Main script endpoint
+// main script endpoint
 app.get("/script", (req, res) => {
-    // Only allow real Roblox user-agent
-    if (!req.headers["user-agent"]?.includes("Roblox")) return res.send("print'fake'")
-
-    // generate per-request random key
-    const randKey = crypto.randomBytes(16).toString("hex")
-
-    // encrypt script
-    const encrypted = Buffer.from(xor(REAL_CODE, randKey)).toString("hex")
-
-    // encode key using shared secret
-    let encodedKey = ""
-    for (let i = 0; i < randKey.length; i++) {
-        encodedKey += String.fromCharCode(randKey.charCodeAt(i) ^ SHARED_SECRET.charCodeAt(i % SHARED_SECRET.length))
+    if (!req.headers["user-agent"]?.includes("Roblox")) {
+        return res.send("print'fake'")
     }
 
-    res.json({ code: encrypted, key: Buffer.from(encodedKey).toString("hex") })
+    const randKey = crypto.randomBytes(16).toString("hex")
+
+    const encrypted = Buffer.from(xor(REAL_CODE, randKey)).toString("hex")
+
+    let encodedKey = ""
+    for (let i = 0; i < randKey.length; i++) {
+        encodedKey += String.fromCharCode(
+            randKey.charCodeAt(i) ^ SHARED_SECRET.charCodeAt(i % SHARED_SECRET.length)
+        )
+    }
+
+    res.json({
+        code: encrypted,
+        key: Buffer.from(encodedKey).toString("hex")
+    })
 })
 
-app.listen(PORT, () => console.log("Server running"))
+app.listen(PORT, () => console.log("running"))
